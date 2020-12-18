@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"os/exec"
 	"strings"
 	"sync"
 	"time"
@@ -31,22 +32,19 @@ type CheckUser struct {
 }
 
 func main() {
-	//初始化配置文件
-	var c config.Config
-	c.GetConf()
-	//fmt.Println(c.Train)
 	wg.Add(2)
-	go GetHuiJia(c)
-	go IsLogin(c)
+	go GetHuiJia()
+	go IsLogin()
 	wg.Wait()
 }
 
-func GetHuiJia(c config.Config) {
+func GetHuiJia() {
 	defer wg.Done()
 	for {
 		var yp resYuPiao
 		//var yd *model.OrderRequest
-
+		var c config.Config
+		c.GetConf()
 		yd := &model.OrderRequest{
 			Traindate: c.Time,
 			From:      city.GetCity(c.Form),
@@ -182,9 +180,11 @@ func GetHuiJia(c config.Config) {
 
 }
 
-func IsLogin(c config.Config) {
+func IsLogin() {
 	defer wg.Done()
 	for {
+		var c config.Config
+		c.GetConf()
 		var login CheckUser
 		url := "https://kyfw.12306.cn/otn/login/checkUser"
 		method := "GET"
@@ -214,6 +214,11 @@ func IsLogin(c config.Config) {
 		err = json.Unmarshal([]byte(string(body)), &login)
 		fmt.Println(login.Data.Flag)
 		loginis = login.Data.Flag
+		command := exec.Command("cmd", "/c", "start", "login.exe")
+		err = command.Start() //start 是异步执行 run是同步
+		if err != nil {
+			panic(err)
+		}
 		//每一分钟去查登录是否失效
 		time.Sleep(time.Minute * 1)
 

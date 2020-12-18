@@ -32,6 +32,10 @@ type CheckUser struct {
 }
 
 func main() {
+	//初始化配置文件
+
+	//fmt.Println(c.Train)
+
 	wg.Add(2)
 	go GetHuiJia()
 	go IsLogin()
@@ -41,10 +45,12 @@ func main() {
 func GetHuiJia() {
 	defer wg.Done()
 	for {
-		var yp resYuPiao
-		//var yd *model.OrderRequest
+
 		var c config.Config
 		c.GetConf()
+		var yp resYuPiao
+		//var yd *model.OrderRequest
+
 		yd := &model.OrderRequest{
 			Traindate: c.Time,
 			From:      city.GetCity(c.Form),
@@ -134,6 +140,7 @@ func GetHuiJia() {
 						fmt.Println(fmt.Sprintf("车次：%s,ID：%s", data["车次"], arr[0]))
 						if !loginis {
 							fmt.Println(fmt.Sprintf("%s", "cookie失效了，请重新登录！"))
+							time.Sleep(time.Second * 30)
 						} else {
 							submit.SubmitOrderRequest(c.Cookie, arr[0], yd.Traindate, c.Form, c.To)
 
@@ -160,6 +167,7 @@ func GetHuiJia() {
 
 								if !loginis {
 									fmt.Println(fmt.Sprintf("%s", "cookie失效了，请重新登录！"))
+									time.Sleep(time.Second * 30)
 								} else {
 									submit.SubmitOrderRequest(c.Cookie, arr[0], yd.Traindate, c.Form, c.To)
 
@@ -167,9 +175,7 @@ func GetHuiJia() {
 									time.Sleep(time.Millisecond)
 
 									submit.CheckOrderInfo(c.Cookie, v, c.Passengers)
-
 								}
-
 							}
 						}
 					}
@@ -183,9 +189,9 @@ func GetHuiJia() {
 func IsLogin() {
 	defer wg.Done()
 	for {
+		var login CheckUser
 		var c config.Config
 		c.GetConf()
-		var login CheckUser
 		url := "https://kyfw.12306.cn/otn/login/checkUser"
 		method := "GET"
 
@@ -214,14 +220,19 @@ func IsLogin() {
 		err = json.Unmarshal([]byte(string(body)), &login)
 		fmt.Println(login.Data.Flag)
 		loginis = login.Data.Flag
-		command := exec.Command("cmd", "/c", "start", "login.exe")
-		err = command.Start() //start 是异步执行 run是同步
-		if err != nil {
-			panic(err)
-		}
-		//每一分钟去查登录是否失效
-		time.Sleep(time.Minute * 1)
+		if !loginis {
+			command := exec.Command("cmd", "/c", "start", "login.exe")
+			// 第一个参数可以是环境变量path中的任何命令程序，或者指定具体的exe程序
+			// 后面参数是任意可选的
+			// 例如 cmd /c start 某个exe ，运行后开启新的cmnd窗口运行某个exe
+			// /c 是关闭原有窗口， 不加/c 开启新的失败，不知道什么原因
+			err := command.Start() //start 是异步执行 run是同步
+			if err != nil {
+				panic(err)
+			}
 
+		}
+		time.Sleep(time.Minute)
 	}
 
 }

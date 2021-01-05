@@ -19,6 +19,7 @@ import (
 var wg sync.WaitGroup
 var once sync.Once
 var loginis bool
+var n int
 
 type resYuPiao struct {
 	Data `json:"data"`
@@ -56,7 +57,7 @@ func GetHuiJia() {
 			From:      city.GetCity(c.Form),
 			To:        city.GetCity(c.To),
 		}
-		url := "https://kyfw.12306.cn/otn/leftTicket/query?leftTicketDTO.train_date=" + yd.Traindate + "&leftTicketDTO.from_station=" + yd.From + "&leftTicketDTO.to_station=" + yd.To + "&purpose_codes=ADULT"
+		url := "https://kyfw.12306.cn/otn/leftTicket/queryT?leftTicketDTO.train_date=" + yd.Traindate + "&leftTicketDTO.from_station=" + yd.From + "&leftTicketDTO.to_station=" + yd.To + "&purpose_codes=ADULT"
 		method := "GET"
 		client := &http.Client{}
 		req, err := http.NewRequest(method, url, nil)
@@ -129,8 +130,9 @@ func GetHuiJia() {
 			}
 
 			if len(c.Train) == 0 {
-				fmt.Println(fmt.Sprintf("车次:%s,出发车站:%s,到达车站:%s,出发时间:%s,到达时间:%s,商务座:%s,一等座:%s,二等座:%s,高级软卧:%s,软卧:%s,动卧:%s,硬卧:%s,软座:%s,硬座:%s,无座:%s,备注:%s",
-					data["车次"], data["出发车站"], data["到达车站"], data["出发时间"], data["到达时间"], data["商务座"], data["一等座"], data["二等座"], data["高级软卧"], data["软卧"], data["动卧"],
+				n = n + 1
+				fmt.Println(fmt.Sprintf("第%d次查询,日期%s,车次:%s,出发车站:%s,到达车站:%s,出发时间:%s,到达时间:%s,商务座:%s,一等座:%s,二等座:%s,高级软卧:%s,软卧:%s,动卧:%s,硬卧:%s,软座:%s,硬座:%s,无座:%s,备注:%s",
+					n, c.Time, data["车次"], data["出发车站"], data["到达车站"], data["出发时间"], data["到达时间"], data["商务座"], data["一等座"], data["二等座"], data["高级软卧"], data["软卧"], data["动卧"],
 					data["硬卧"], data["软座"], data["硬座"], data["无座"], data["备注"]))
 				time.Sleep(time.Millisecond * 500)
 				for _, v := range c.Seats {
@@ -155,8 +157,9 @@ func GetHuiJia() {
 			} else {
 				for _, v := range c.Train {
 					if v == data["车次"] {
-						fmt.Println(fmt.Sprintf("车次:%s,出发车站:%s,到达车站:%s,出发时间:%s,到达时间:%s,商务座:%s,一等座:%s,二等座:%s,高级软卧:%s,软卧:%s,动卧:%s,硬卧:%s,软座:%s,硬座:%s,无座:%s,备注:%s",
-							data["车次"], data["出发车站"], data["到达车站"], data["出发时间"], data["到达时间"], data["商务座"], data["一等座"], data["二等座"], data["高级软卧"], data["软卧"], data["动卧"],
+						n = n + 1
+						fmt.Println(fmt.Sprintf("第%d次查询,日期%s,车次:%s,出发车站:%s,到达车站:%s,出发时间:%s,到达时间:%s,商务座:%s,一等座:%s,二等座:%s,高级软卧:%s,软卧:%s,动卧:%s,硬卧:%s,软座:%s,硬座:%s,无座:%s,备注:%s",
+							n, c.Time, data["车次"], data["出发车站"], data["到达车站"], data["出发时间"], data["到达时间"], data["商务座"], data["一等座"], data["二等座"], data["高级软卧"], data["软卧"], data["动卧"],
 							data["硬卧"], data["软座"], data["硬座"], data["无座"], data["备注"]))
 						time.Sleep(time.Millisecond * 500)
 						for _, v := range c.Seats {
